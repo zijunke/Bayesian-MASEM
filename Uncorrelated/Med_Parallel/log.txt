@@ -1,0 +1,28 @@
+model is syntactically correct
+data loaded (variables not in the model: p, j, k, WI)
+model compiled
+model is initialized
+model is already initialized
+model is updating
+100000 updates took 186 s
+model is updating
+100000 updates took 262 s
+CODA files written
+Summary statistics
+		mean	sd	val2.5pc	median	val97.5pc	sample
+	a10	0.04467	0.05038	-0.05417	0.04458	0.1441	100000
+	a2	0.2932	0.01055	0.2723	0.2932	0.3136	100000
+	b10	0.05499	0.05602	-0.05632	0.05542	0.1647	100000
+	b2	-0.2941	0.01309	-0.319	-0.2945	-0.2683	100000
+	cp	0.12	0.01529	0.08899	0.1207	0.1489	100000
+	deviance	-912.7	82.36	-1076.0	-910.5	-757.6	100000
+	g	-0.1022	0.01243	-0.1264	-0.1022	-0.07761	100000
+	ppp	0.412	0.4922	-0.003163	4.736E-8	1.0	100000
+	sd.a1	0.3004	0.03913	0.2344	0.2965	0.3872	100000
+	sd.b1	0.3145	0.04471	0.2397	0.3102	0.415	100000
+Deviance information
+	Dbar	Dhat	DIC	pD	
+vR	-912.7	-1098.0	-727.3	185.3
+total	-912.7	-1098.0	-727.3	185.3
+History
+model externalized to file ok
