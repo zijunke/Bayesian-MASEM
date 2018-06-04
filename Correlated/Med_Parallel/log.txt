@@ -1,0 +1,26 @@
+model internalized from file ok
+model is updating
+1 updates took 0 s
+DIC already monitored
+model is updating
+100000 updates took 496 s
+CODA files written
+Summary statistics
+		mean	sd	val2.5pc	median	val97.5pc	sample
+	a10	0.07994	0.04395	-0.007959	0.08035	0.1656	100000
+	a2	0.2997	0.01056	0.2783	0.2997	0.3208	100000
+	b10	0.1565	0.04291	0.07189	0.1567	0.241	100000
+	b2	-0.2965	0.01264	-0.3217	-0.2965	-0.2715	100000
+	cp	0.103	0.01472	0.07388	0.103	0.132	100000
+	deviance	-967.3	77.28	-1119.0	-967.9	-819.1	100000
+	g	-0.102	0.01236	-0.1266	-0.102	-0.07763	100000
+	ppp	0.2975	0.4572	-0.003164	3.979E-8	1.0	100000
+	rho.a1b1	0.377	0.1563	0.04484	0.3877	0.649	100000
+	sd.a1	0.26	0.03337	0.203	0.2571	0.3332	100000
+	sd.b1	0.2421	0.03302	0.1859	0.239	0.3153	100000
+Deviance information
+	Dbar	Dhat	DIC	pD	
+vR	-965.0	-653.8	-1276.0	-311.2
+total	-965.0	-653.8	-1276.0	-311.2
+History
+model externalized to file ok
