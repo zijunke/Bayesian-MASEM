@@ -1,0 +1,36 @@
+model is syntactically correct
+data loaded
+model compiled
+model is initialized
+model is already initialized
+model is updating
+30000 updates took 193 s
+model is updating
+30000 updates took 292 s
+CODA files written
+Summary statistics
+		mean	sd	val2.5pc	median	val97.5pc	sample
+	deviance	-591.5	38.56	-672.7	-587.9	-519.0	30000
+	mu.L[1]	0.53	0.03239	0.4661	0.5306	0.5925	30000
+	mu.L[2]	0.4923	0.03258	0.4274	0.4927	0.5561	30000
+	mu.L[3]	0.4101	0.03254	0.3463	0.4099	0.4738	30000
+	mu.L[4]	0.5294	0.03358	0.4638	0.5298	0.5952	30000
+	mu.L[5]	0.5201	0.03344	0.4561	0.52	0.5871	30000
+	mu.L[6]	0.4377	0.03311	0.3731	0.4375	0.5024	30000
+	mu.rho	0.9706	0.02494	0.9085	0.9771	0.9999	30000
+	ppp	0.9738	0.1598	0.9861	1.0	1.006	30000
+	sd.L[1]	0.06514	0.03283	0.01262	0.06165	0.1368	30000
+	sd.L[2]	0.09724	0.03874	0.02385	0.0969	0.1745	30000
+	sd.L[3]	0.107	0.03744	0.0356	0.1069	0.1828	30000
+	sd.L[4]	0.09085	0.03594	0.02726	0.08961	0.1645	30000
+	sd.L[5]	0.09319	0.03759	0.02544	0.0924	0.1696	30000
+	sd.L[6]	0.1193	0.03825	0.04247	0.1191	0.1953	30000
+	sd.rho	0.09976	0.04884	0.02155	0.09494	0.2051	30000
+Deviance information
+	Dbar	Dhat	DIC	pD	
+mu.L	2.773	2.773	2.773	-2.247E-13
+vL	0.01158	2.818E-7	0.02317	0.01158
+vR	-594.3	-752.2	-436.3	158.0
+total	-591.5	-749.5	-433.5	158.0
+History
+model externalized to file ok
