@@ -1,0 +1,130 @@
+model{
+
+	for(si in 1:Nstudy){	
+		tau.ER[si] <- tau.R*N[si]/mu.N	
+		vR.psi[si,1:pp] ~ dmnorm(mu.vR.psi[1:pp],tau.vR[si,1:pp,1:pp])
+
+		for(vi in 1:pp){
+			vR[si,vi] ~ dnorm(vPPsi[si,vi],tau.ER[si])
+			vR.rep[si,vi] ~ dnorm(vPPsi[si,vi],tau.ER[si])
+			vPPsi[si,vi] <- vP[si,vi] + vR.psi[si,vi]
+
+			LL[si,vi] <- vL[si,j[vi]]*vL[si,k[vi]]
+			vP[si,vi] <- LL[si,vi]*(rho[si]*ind1[vi] + 1-ind1[vi]) 
+		}
+
+		vL[si,1] ~ dnorm(mu.L[1],tau.L[1])I(0,)
+		vL[si,4] ~ dnorm(mu.L[4],tau.L[4])I(0,)
+		for(li in 2:3){
+			vL[si,li] ~ dnorm(mu.L[li],tau.L[li])
+			vL[si,li+3] ~ dnorm(mu.L[li+3],tau.L[li+3])
+		}
+		rho[si] ~ dnorm(mu.rho,tau.rho)
+	}
+
+	# transformed parameters
+	V.rho <- sd.rho*sd.rho
+	tau.rho <- 1/V.rho
+
+	for(li in 1:6){
+		V.L[li] <- sd.L[li]*sd.L[li]
+		tau.L[li] <- 1/V.L[li]
+		V.par[li] <- V.L[li]
+	}
+	V.par[p+1] <- V.rho
+
+	# compute covariance matrix of r
+	for(vi in 1:pp){
+		Z[vi,k[vi]] <-  mu.L[j[vi]]*(mu.rho*ind1[vi] + 1-ind1[vi]) 
+		Z[vi,j[vi]] <-  mu.L[k[vi]]*(mu.rho*ind1[vi] + 1-ind1[vi]) 
+		Z[vi,p+1] <- mu.L[j[vi]]*mu.L[k[vi]]*ind1[vi]
+	}
+	
+	for(vi in 1:(pp-1)){
+		for(pi in 1:(p+1)){ZV[vi,pi] <- Z[vi,pi]*V.par[pi]}
+		V.P[vi,vi] <- inprod(ZV[vi,],Z[vi,]) 
+		for(vj in (vi+1):pp){
+			V.P[vi,vj] <- inprod(ZV[vi,],Z[vj,])
+			V.P[vj,vi] <- V.P[vi,vj]
+		}
+	}
+	for(pi in 1:(p+1)){ZV[pp,pi] <- Z[pp,pi]*V.par[pi]}
+	V.P[pp,pp] <- inprod(ZV[pp,],Z[pp,]) 
+
+	for(si in 1:Nstudy){
+		for(vi in 1:pp){
+			V.R[si,vi,vi] <- V.P[vi,vi] + Ninv[si]
+		}
+		for(vi in 1:(pp-1)){
+		for(vj in (vi+1):pp){
+			V.R[si,vi,vj] <- V.P[vi,vj]
+			V.R[si,vj,vi] <- V.P[vj,vi]
+		}
+		}
+		tau.Rr[si,1:pp,1:pp] <- inverse(V.R[si,1:pp,1:pp])
+	}
+
+
+	# compute ppp
+	for(si in 1:Nstudy){
+		for(vi in 1:pp){
+			vRw[si,vi] <- vR[si,vi]*sqrt(tau.Rr[si,vi,vi])
+			vRw.rep[si,vi] <- vR.rep[si,vi]*sqrt(tau.Rr[si,vi,vi])
+			vPw[si,vi] <- vP[si,vi]*sqrt(tau.Rr[si,vi,vi])
+		}
+
+		mu.y.s[si] <- mean(vRw[si,1:pp]) 
+		mu.y.s.rep[si] <- mean(vRw.rep[si,1:pp]) 
+		for(vi in 1:pp){
+			d.vRP2[si,vi] <- (vRw[si,vi]-vPw[si,vi])*(vRw[si,vi]-vPw[si,vi])
+			d.vRP2.rep[si,vi] <- (vRw.rep[si,vi]-vPw[si,vi])*(vRw.rep[si,vi]-vPw[si,vi])
+		}
+		SSvRP.s[si] <- sum(d.vRP2[si,1:pp])
+		SSvRP.s.rep[si] <- sum(d.vRP2.rep[si,1:pp])
+		mu.p.s[si] <- mean(vPw[si,1:pp])
+	}
+
+
+	SSvRP <- sum(SSvRP.s[1:Nstudy])
+	SSvRP.rep <- sum(SSvRP.s.rep[1:Nstudy])
+
+	mu.y <- mean(mu.y.s[1:Nstudy])
+	mu.y.rep <- mean(mu.y.s.rep[1:Nstudy])
+	mu.p <- mean(mu.p.s[1:Nstudy])
+	for(si in 1:Nstudy){
+		for(vi in 1:pp){
+			d.vRYbar2[si,vi] <- (vRw[si,vi]-mu.y)*(vRw[si,vi]-mu.y)
+			d.vRYbar2.rep[si,vi] <- (vRw.rep[si,vi] - mu.y.rep)*(vRw.rep[si,vi] - mu.y.rep)
+			d.vPPbar2[si,vi] <- (vPw[si,vi] - mu.p)*(vPw[si,vi] - mu.p)
+		}
+		SSvRYbar.s[si] <- sum(d.vRYbar2[si,1:pp])
+		SSvRYbar.s.rep[si] <- sum(d.vRYbar2.rep[si,1:pp])
+		SSvPPbar.s[si] <- sum(d.vPPbar2[si,1:pp])
+	}
+	SSvRYbar <- sum(SSvRYbar.s[1:Nstudy])
+	SSvRYbar.rep <- sum(SSvRYbar.s.rep[1:Nstudy])
+	SSvPPbar <- sum(SSvPPbar.s[1:Nstudy])
+
+	CCC <- 1-SSvRP/(SSvRYbar+SSvPPbar + Nstudy*pp*(mu.y-mu.p)*(mu.y-mu.p))
+	CCC.rep <- 1-SSvRP.rep/(SSvRYbar.rep+SSvPPbar + Nstudy*pp*(mu.y.rep-mu.p)*(mu.y.rep-mu.p))
+
+	ppp <- step(CCC.rep-CCC)
+	
+	# prior
+	tau.R ~ dgamma(alpha.prior.vE,beta.prior.vE)
+	
+	mu.rho ~ dunif(-1,1)
+	sd.rho ~ dgamma(2,0.0001)
+
+	mu.L[1] ~ dunif(0,1)
+	mu.L[4] ~ dunif(0,1)
+	for(li in 2:3){
+		mu.L[li] ~ dunif(-1,1)
+		mu.L[li+3] ~ dunif(-1,1)
+	}
+	for(li in 1:6){
+		sd.L[li] ~ dgamma(2,0.0001)
+	}
+}
+
+
