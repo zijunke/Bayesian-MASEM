@@ -1,0 +1,147 @@
+# Sequantial mediation model
+# 2 Mediators: m1 & m2
+# random a, b1, b2, and cp paths
+# all of them are correlated
+model{
+	for(si in 1:Nstudy){	
+		for(vi in 1:pp){
+			vR[si,vi] ~ dnorm(vPPsi[si,vi],tau.ER[si])
+			vR.rep[si,vi] ~ dnorm(vPPsi[si,vi],tau.ER[si])
+			vPPsi[si,vi] <- vP[si,vi] + vR.psi[si,vi]
+		}
+		# vP: model implied population correlation vector
+		vP[si,1] <- a[si]
+		vP[si,2] <- a[si]*b1[si]
+		vP[si,3] <- a[si]*b1[si]*b2[si]+cp[si]
+		vP[si,4] <- b1[si]
+		vP[si,5] <- a[si]*cp[si]+b1[si]*b2[si]
+		vP[si,6] <- a[si]*cp[si]*b1[si]+b2[si]
+		
+		a[si] <- xi[1]*thetai.raw[si,1]
+		b1[si] <- xi[2]*thetai.raw[si,2]
+		b2[si] <- xi[3]*thetai.raw[si,3]
+		cp[si] <- xi[4]*thetai.raw[si,4]
+		thetai.raw[si,1:4] ~ dmnorm(theta0.raw[1:4],iQ[1:4,1:4])
+		
+		tau.ER[si] <- tau.R*N[si]/mu.N	
+		vR.psi[si,1:pp] ~ dmnorm(mu.vR.psi[1:pp],tau.vR[si,1:pp,1:pp])
+	}
+
+	# transformed parameters
+	Q[1:4,1:4] <- inverse(iQ[1:4,1:4])
+	for(pi in 1:4){
+		V.theta[pi,pi] <- xi[pi]*xi[pi]*Q[pi,pi]
+		sd.par[pi] <- sqrt(V.theta[pi,pi])	
+		theta0[pi] <- xi[pi]*theta0.raw[pi]
+	}
+	
+	for(pi in 1:3){
+	for(pj in (pi+1):4){
+		V.theta[pi,pj] <- xi[pi]*xi[pj]*Q[pi,pj]
+		V.theta[pj,pi] <- V.theta[pi,pj]
+	}
+	}
+	
+	cor.par[1] <- Q[1,2]/sqrt(Q[1,1]*Q[2,2])
+	cor.par[2] <- Q[1,3]/sqrt(Q[1,1]*Q[3,3])
+	cor.par[3] <- Q[1,4]/sqrt(Q[1,1]*Q[4,4])
+	cor.par[4] <- Q[2,3]/sqrt(Q[2,2]*Q[3,3])
+	cor.par[5] <- Q[2,4]/sqrt(Q[2,2]*Q[4,4])
+	cor.par[6] <- Q[3,4]/sqrt(Q[3,3]*Q[4,4])
+	
+	a0 <- theta0[1]
+	b10 <- theta0[2]
+	b20 <- theta0[3]
+	cp0 <- theta0[4]
+
+	# compute covariance matrix of r
+	Z[2,1]<- b10; Z[2,2]<-a0 
+	Z[3,1]<-b10*b20; Z[3,2]<-a0*b20;Z[3,3]<-a0*b10 
+	Z[5,1]<-cp0; Z[5,2]<-b20;Z[5,3]<-b10; Z[5,4]<-a0
+	Z[6,1]<-b10*cp0; Z[6,2]<-a0*cp0;Z[6,4]<-a0*b10
+	
+	for(vi in 1:pp){
+	for(pi in 1:4){
+		ZV[vi,pi] <- inprod(Z[vi,],V.theta[,pi])
+	}
+	}
+	
+	for(vi in 1:(pp-1)){
+		V.P[vi,vi] <- inprod(ZV[vi,],Z[vi,]) 
+		for(vj in (vi+1):pp){
+			V.P[vi,vj] <- inprod(ZV[vi,],Z[vj,])
+			V.P[vj,vi] <- V.P[vi,vj]
+		}
+	}
+	V.P[pp,pp] <- inprod(ZV[pp,],Z[pp,])
+	
+	for(si in 1:Nstudy){
+		for(vi in 1:pp){
+			V.R[si,vi,vi] <- V.P[vi,vi] + Ninv[si]
+		}
+		for(vi in 1:(pp-1)){
+		for(vj in (vi+1):pp){
+			V.R[si,vi,vj] <- V.P[vi,vj]
+			V.R[si,vj,vi] <- V.P[vj,vi]
+		}
+		}
+		tau.Rr[si,1:pp,1:pp] <- inverse(V.R[si,1:pp,1:pp])
+	}
+
+
+	# compute ppp
+	for(si in 1:Nstudy){
+		for(vi in 1:pp){
+			vRw[si,vi] <- vR[si,vi]*sqrt(tau.Rr[si,vi,vi])
+			vRw.rep[si,vi] <- vR.rep[si,vi]*sqrt(tau.Rr[si,vi,vi])
+			vPw[si,vi] <- vP[si,vi]*sqrt(tau.Rr[si,vi,vi])
+		}
+
+		mu.y.s[si] <- mean(vRw[si,1:pp]) 
+		mu.y.s.rep[si] <- mean(vRw.rep[si,1:pp]) 
+		for(vi in 1:pp){
+			d.vRP2[si,vi] <- (vRw[si,vi]-vPw[si,vi])*(vRw[si,vi]-vPw[si,vi])
+			d.vRP2.rep[si,vi] <- (vRw.rep[si,vi]-vPw[si,vi])*(vRw.rep[si,vi]-vPw[si,vi])
+		}
+		SSvRP.s[si] <- sum(d.vRP2[si,1:pp])
+		SSvRP.s.rep[si] <- sum(d.vRP2.rep[si,1:pp])
+		mu.p.s[si] <- mean(vPw[si,1:pp])
+	}
+
+
+	SSvRP <- sum(SSvRP.s[1:Nstudy])
+	SSvRP.rep <- sum(SSvRP.s.rep[1:Nstudy])
+
+	mu.y <- mean(mu.y.s[1:Nstudy])
+	mu.y.rep <- mean(mu.y.s.rep[1:Nstudy])
+	mu.p <- mean(mu.p.s[1:Nstudy])
+	for(si in 1:Nstudy){
+		for(vi in 1:pp){
+			d.vRYbar2[si,vi] <- (vRw[si,vi]-mu.y)*(vRw[si,vi]-mu.y)
+			d.vRYbar2.rep[si,vi] <- (vRw.rep[si,vi] - mu.y.rep)*(vRw.rep[si,vi] - mu.y.rep)
+			d.vPPbar2[si,vi] <- (vPw[si,vi] - mu.p)*(vPw[si,vi] - mu.p)
+		}
+		SSvRYbar.s[si] <- sum(d.vRYbar2[si,1:pp])
+		SSvRYbar.s.rep[si] <- sum(d.vRYbar2.rep[si,1:pp])
+		SSvPPbar.s[si] <- sum(d.vPPbar2[si,1:pp])
+	}
+	SSvRYbar <- sum(SSvRYbar.s[1:Nstudy])
+	SSvRYbar.rep <- sum(SSvRYbar.s.rep[1:Nstudy])
+	SSvPPbar <- sum(SSvPPbar.s[1:Nstudy])
+
+	CCC <- 1-SSvRP/(SSvRYbar+SSvPPbar + Nstudy*pp*(mu.y-mu.p)*(mu.y-mu.p))
+	CCC.rep <- 1-SSvRP.rep/(SSvRYbar.rep+SSvPPbar + Nstudy*pp*(mu.y.rep-mu.p)*(mu.y.rep-mu.p))
+
+	ppp <- step(CCC.rep-CCC)
+	
+	# prior
+	tau.R ~ dgamma(alpha.prior.vE,beta.prior.vE)
+	
+	for(pi in 1:4){
+		theta0.raw[pi] ~ dunif(-1,1)
+		xi[pi] ~ dunif(0,100)
+	}
+	iQ[1:4,1:4] ~ dwish(WI[1:4,1:4],5)
+}
+
+
